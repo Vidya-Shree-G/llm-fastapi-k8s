@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-fastapi-dashboard
+  namespace: default
+data:
+  fastapi-overview.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "id": 1,
+          "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single", "sort": "none"}},
+          "targets": [{"expr": "sum(rate(fastapi_http_requests_total[5m])) by (method)", "legendFormat": "{{method}}", "refId": "A"}],
+          "title": "Request rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "id": 2,
+          "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single", "sort": "none"}},
+          "targets": [{"expr": "histogram_quantile(0.95, sum(rate(fastapi_http_request_duration_seconds_bucket[5m])) by (le, method))", "legendFormat": "p95 {{method}}", "refId": "A"}],
+          "title": "Request latency (p95)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "id": 3,
+          "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single", "sort": "none"}},
+          "targets": [{"expr": "sum(rate(fastapi_http_errors_total[5m])) by (status) / sum(rate(fastapi_http_requests_total[5m])) by (status)", "legendFormat": "{{status}}", "refId": "A"}],
+          "title": "Error rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "none"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+          "id": 4,
+          "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single", "sort": "none"}},
+          "targets": [{"expr": "fastapi_app_health", "legendFormat": "health", "refId": "A"}, {"expr": "fastapi_app_ready", "legendFormat": "ready", "refId": "B"}],
+          "title": "Application health and readiness",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+          "id": 5,
+          "targets": [{"expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"fastapi-.*\"}[5m])) by (pod) * 100", "legendFormat": "{{pod}}", "refId": "A"}],
+          "title": "FastAPI CPU usage",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+          "id": 6,
+          "targets": [{"expr": "sum(container_memory_working_set_bytes{pod=~\"fastapi-.*\"}) by (pod)", "legendFormat": "{{pod}}", "refId": "A"}],
+          "title": "FastAPI memory usage",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "none"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+          "id": 7,
+          "targets": [{"expr": "kube_deployment_status_replicas_available{deployment=\"fastapi\"} OR kube_deployment_status_replicas{deployment=\"fastapi\"}", "legendFormat": "replicas", "refId": "A"}],
+          "title": "Pod count",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "ops"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+          "id": 8,
+          "targets": [{"expr": "sum(rate(fastapi_http_requests_total[5m])) by (path)", "legendFormat": "{{path}}", "refId": "A"}],
+          "title": "Application performance by endpoint",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "style": "dark",
+      "tags": ["fastapi", "kubernetes", "llm"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "FastAPI Overview",
+      "uid": "fastapi-overview",
+      "version": 1,
+      "weekStart": ""
+    }

@@ -17,6 +17,10 @@ spec:
         app: vllm
 
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: vllm
           image: vllm/vllm-openai-cpu:latest-arm64
@@ -42,6 +46,13 @@ spec:
           ports:
             - containerPort: 8000
 
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+
           resources:
             requests:
               cpu: "4"
@@ -53,6 +64,24 @@ spec:
           volumeMounts:
             - name: dshm
               mountPath: /dev/shm
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
 
       volumes:
         - name: dshm
